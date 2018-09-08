@@ -1,0 +1,35 @@
+{
+  "name": "zombiebox-extension-lodash",
+  "version": "0.1.0",
+  "description": "ZombieBox extension for Lodash",
+  "author": "Kirill Dronkin (http://dronkin.ru)",
+  "license": "MIT",
+  "main": "index.js",
+  "files": [
+    "LICENSE",
+    "README.md",
+    "CHANGELOG.md",
+    "index.js",
+    "lib",
+    "vendor",
+    "externs"
+  ],
+  "keywords": [
+    "zombiebox",
+    "zombiebox-extension",
+    "lodash",
+    "closure-compiler",
+    "externs"
+  ],
+  "devDependencies": {
+    "ast-types": "0.9.12",
+    "doctrine": "2.0.0",
+    "escodegen": "1.8.1",
+    "esprima": "4.0.0",
+    "lodash": "4.17.4",
+    "lodash-cli": "4.17.4"
+  },
+  "scripts": {
+    "build": "node scripts/build"
+  }
+}
