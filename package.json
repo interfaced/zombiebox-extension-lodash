@@ -1,35 +1,62 @@
 {
   "name": "zombiebox-extension-lodash",
-  "version": "0.1.0",
   "description": "ZombieBox extension for Lodash",
-  "author": "Kirill Dronkin (http://dronkin.ru)",
+  "version": "2.0.0",
   "license": "MIT",
-  "main": "index.js",
-  "files": [
-    "LICENSE",
-    "README.md",
-    "CHANGELOG.md",
-    "index.js",
-    "lib",
-    "vendor",
-    "externs"
+  "author": "Interfaced (http://interfaced.tv)",
+  "contributors": [
+    "Kirill Dronkin <kirilldronkin@gmail.com>"
   ],
+  "homepage": "https://github.com/interfaced/zombiebox-extension-lodash",
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:interfaced/zombiebox-extension-lodash.git"
+  },
   "keywords": [
     "zombiebox",
     "zombiebox-extension",
+    "smart-tv",
+    "tv",
     "lodash",
     "closure-compiler",
     "externs"
   ],
-  "devDependencies": {
-    "ast-types": "0.9.12",
-    "doctrine": "2.0.0",
-    "escodegen": "1.8.1",
-    "esprima": "4.0.0",
-    "lodash": "4.17.4",
-    "lodash-cli": "4.17.4"
+  "module": "lib/",
+  "files": [
+    "externs/",
+    "lib/",
+    "vendor/",
+    "LICENSE",
+    "LICENSE.Lodash",
+    "README.md",
+    "CHANGELOG.md",
+    "index.js"
+  ],
+  "engines": {
+    "node": ">=6",
+    "npm": ">=5"
   },
   "scripts": {
-    "build": "node scripts/build"
+    "build": "node scripts/build && eslint externs --fix",
+    "lint": "eslint ."
+  },
+  "dependencies": {
+    "zombiebox": "^2.0.1"
+  },
+  "peerDependencies": {
+    "zombiebox": "^2.0.1"
+  },
+  "devDependencies": {
+    "ast-types": "0.13.1",
+    "doctrine": "3.0.0",
+    "escodegen": "1.11.1",
+    "eslint": "^5.16.0",
+    "eslint-config-interfaced": "^1.5.0",
+    "eslint-plugin-goog": "^1.0.0",
+    "eslint-plugin-interfaced": "^1.6.1",
+    "eslint-plugin-node": "^9.1.0",
+    "esprima": "4.0.1",
+    "lodash": "4.17.11",
+    "lodash-cli": "4.17.5"
   }
 }

@@ -5,135 +5,19 @@ const ast = require('ast-types').builders;
 const esprima = require('esprima');
 const escodegen = require('escodegen');
 const doctrine = require('doctrine');
-const buildLodash = require('lodash-cli');
+const lodash = require('lodash');
+const lodashCLI = require('lodash-cli');
 
-const METHODS = [
-	'chunk',
-	'difference',
-	'differenceBy',
-	'differenceWith',
-	'dropRight',
-	'dropRightWhile',
-	'dropWhile',
-	'findLastIndex',
-	'flatten',
-	'flattenDeep',
-	'flattenDepth',
-	'fromPairs',
-	'intersection',
-	'intersectionBy',
-	'intersectionWith',
-	'last',
-	'pull',
-	'pullAll',
-	'pullAllBy',
-	'pullAllWith',
-	'pullAt',
-	'remove',
-	'takeRight',
-	'takeRightWhile',
-	'takeWhile',
-	'union',
-	'unionBy',
-	'unionWith',
-	'uniq',
-	'uniqBy',
-	'uniqWith',
-	'unzip',
-	'unzipWith',
-	'without',
-	'xor',
-	'xorBy',
-	'xorWith',
-	'zip',
-	'zipObject',
-	'zipWith',
+const methods = require('../methods');
 
-	'countBy',
-	'findLast',
-	'flatMap',
-	'flatMapDeep',
-	'flatMapDepth',
-	'forEachRight',
-	'groupBy',
-	'includes',
-	'keyBy',
-	'partition',
-	'sample',
-	'sampleSize',
-	'shuffle',
+const BUNDLE_FILE_PATH = path.join(__dirname, '..', 'vendor', 'lodash.js');
+const EXTERNS_FILE_PATH = path.join(__dirname, '..', 'externs', 'lodash.js');
+const README_FILE_PATH = path.join(__dirname, '..', 'README.md');
+const README_TEMPLATE_FILE_PATH = path.join(__dirname, '..', 'templates', 'README.md.jst');
 
-	'ary',
-	'curry',
-	'curryRight',
-	'debounce',
-	'memoize',
-	'once',
-	'overArgs',
-	'partial',
-	'partialRight',
-	'throttle',
-	'unary',
-	'wrap',
-
-	'clone',
-	'cloneDeep',
-	'cloneDeepWith',
-	'cloneWith',
-	'isEqual',
-	'isEqualWith',
-	'toArray',
-	'toInteger',
-	'toNumber',
-	'toString',
-
-	'clamp',
-	'random',
-
-	'defaults',
-	'defaultsDeep',
-	'findKey',
-	'findLastKey',
-	'mapKeys',
-	'mapValues',
-	'merge',
-	'mergeWith',
-	'omitBy',
-	'pickBy',
-	'toPairs',
-	'toPairsIn',
-	'values',
-	'valuesIn',
-
-	'camelCase',
-	'capitalize',
-	'escape',
-	'escapeRegExp',
-	'kebabCase',
-	'lowerCase',
-	'lowerFirst',
-	'pad',
-	'padEnd',
-	'padStart',
-	'repeat',
-	'snakeCase',
-	'startCase',
-	'trimEnd',
-	'trimStart',
-	'truncate',
-	'unescape',
-	'upperCase',
-	'upperFirst',
-
-	'attempt',
-	'over',
-	'overEvery',
-	'overSome',
-	'range',
-	'rangeRight',
-	'times',
-	'uniqueId'
-];
+const TAB = '\t';
+const NEW_LINE = '\n';
+const JSDOC_LINE_STARTER = `${TAB} * `;
 
 const JSDOC_TAGS_RENAMING = {
 	'returns': 'return'
@@ -146,15 +30,6 @@ const JSDOC_TAGS_BLACKLIST = [
 	'example',
 	'see'
 ];
-
-const BUNDLE_FILE_PATH = path.join(__dirname, '..', 'vendor', 'lodash.js');
-const EXTERNS_FILE_PATH = path.join(__dirname, '..', 'externs', 'lodash.js');
-const README_FILE_PATH = path.join(__dirname, '..', 'README.md');
-const README_TEMPLATE_FILE_PATH = path.join(__dirname, '..', 'templates', 'README.md.jst');
-
-const TAB = '\t';
-const NEW_LINE = '\n';
-const LINE_STARTER = `${TAB} * `;
 
 const {
 	ExpressionStatement,
@@ -191,8 +66,8 @@ console.log(`Externs written at ${EXTERNS_FILE_PATH}`);
 fs.writeFileSync(README_FILE_PATH, generateReadme(lodashIIFEBody), 'utf-8');
 console.log(`Readme written at ${README_FILE_PATH}`);
 
-buildLodash([
-	`include=${METHODS.join(',')}`,
+lodashCLI([
+	`include=${methods.join(',')}`,
 	'iife=;(function() {%output%}).call(this); window.lodash=window._; delete window._;',
 	'--output', BUNDLE_FILE_PATH,
 	'--production'
@@ -216,7 +91,7 @@ function generateExterns(lodashIIFEBody) {
 
 	const contextRunnerBody = contextRunnerVariable.declarations[0].init.body.body;
 
-	const externsProperties = METHODS.map((methodName) => {
+	const externsMethods = methods.map((methodName) => {
 		const declaration = contextRunnerBody.find((node) =>
 			(node.type === FunctionDeclaration && node.id.name === methodName) ||
 			(node.type === VariableDeclaration && node.declarations.find((declaration) =>
@@ -237,7 +112,10 @@ function generateExterns(lodashIIFEBody) {
 			throw new Error(`Method ${methodName} has no JSDoc`);
 		}
 
-		const JSDocAST = doctrine.parse(JSDocBlock.value, {
+		// Lodash uses proprietary tag "@param-" to describe internally used parameters
+		const value = JSDocBlock.value.replace(/@param-.+/g, '');
+
+		const JSDocAST = doctrine.parse(value, {
 			sloppy: true,
 			unwrap: true
 		});
@@ -249,7 +127,7 @@ function generateExterns(lodashIIFEBody) {
 
 		const func = ast.functionExpression(null, params, ast.blockStatement([]));
 
-		const property = ast.property('init', ast.identifier(methodName), func);
+		const property = ast.methodDefinition('method', ast.identifier(methodName), func);
 		const block = ast.block(renderJSDoc(JSDocAST));
 
 		// Assign to leadingComments for sake of escodegen
@@ -258,13 +136,23 @@ function generateExterns(lodashIIFEBody) {
 		return property;
 	});
 
+	const lodashClass = ast.classDeclaration(
+		ast.identifier('Lodash'),
+		ast.classBody(externsMethods)
+	);
+	lodashClass.leadingComments = [ast.block(`*${NEW_LINE} `)];
+
+	const lodashInstance = ast.expressionStatement(
+		ast.memberExpression(
+			ast.identifier('window'),
+			ast.identifier('lodash')
+		)
+	);
+	lodashInstance.leadingComments = [ast.block(`*${NEW_LINE} * @type {Lodash}${NEW_LINE} `)];
+
 	const externsAST = ast.program([
-		ast.variableDeclaration('const', [
-			ast.variableDeclarator(
-				ast.identifier('lodash'),
-				ast.objectExpression(externsProperties)
-			)
-		])
+		lodashClass,
+		lodashInstance
 	]);
 
 	return escodegen.generate(externsAST, {
@@ -287,12 +175,11 @@ function generateReadme(lodashIIFEBody) {
 		throw new Error('Expected presence of VERSION variable in lodash source code');
 	}
 
-	const lodash = require('lodash');
 	const lodashVersion = lodashVersionVariable.declarations[0].init.value;
 
 	return lodash.template(fs.readFileSync(README_TEMPLATE_FILE_PATH, 'utf-8'))({
 		version: lodashVersion,
-		methods: METHODS.map((name) => `* [${name}](https://lodash.com/docs/${lodashVersion}#${name})`)
+		methods: methods.map((name) => `* [${name}](https://lodash.com/docs/${lodashVersion}#${name})`)
 			.join(NEW_LINE)
 	});
 }
@@ -435,7 +322,7 @@ function modifyJSDoc(JSDocAST) {
 					tag.type.expression,
 					{type: UndefinedLiteral}
 				]
-			}
+			};
 		}
 	});
 
@@ -486,7 +373,7 @@ function modifyJSDoc(JSDocAST) {
 							tagType.expression,
 							{type: UndefinedLiteral}
 						]
-					}
+					};
 				}
 
 				masterType.fields.push({
@@ -506,17 +393,18 @@ function modifyJSDoc(JSDocAST) {
 function renderJSDoc(JSDocAST) {
 	let description = '';
 	if (JSDocAST.description) {
-		description = JSDocAST.description.replace(new RegExp(NEW_LINE, 'g'), `${NEW_LINE}${LINE_STARTER}`);
-		description = `${LINE_STARTER}${description}${NEW_LINE}${LINE_STARTER}${NEW_LINE}`;
+		description = JSDocAST.description.replace(new RegExp(NEW_LINE, 'g'), `${NEW_LINE}${JSDOC_LINE_STARTER}`);
+		description = `${JSDOC_LINE_STARTER}${description}${NEW_LINE}${JSDOC_LINE_STARTER}${NEW_LINE}`;
 	}
 
 	const renderedTags = JSDocAST.tags.map((tag) => {
 		const chunks = [
-			`${LINE_STARTER}@${tag.title}`
+			`${JSDOC_LINE_STARTER}@${tag.title}`
 		];
 
 		if (tag.type) {
 			chunks.push(`{${doctrine.type.stringify(tag.type, {
+				compact: true,
 				topLevel: true
 			})}}`);
 		}

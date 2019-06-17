@@ -1,10 +1,10 @@
 const path = require('path');
+const {AbstractExtension} = require('zombiebox');
 
 
 /**
- * @implements {IZBAddon}
  */
-class Extension {
+class Extension extends AbstractExtension {
 	/**
 	 * @override
 	 */
@@ -15,7 +15,7 @@ class Extension {
 	/**
 	 * @override
 	 */
-	getPublicDir() {
+	getSourcesDir() {
 		return path.join(__dirname, 'lib');
 	}
 
@@ -24,13 +24,16 @@ class Extension {
 	 */
 	getConfig() {
 		return {
-			'compilation': {
-				'externs': [
-					path.join(__dirname, 'externs', 'lodash.js')
-				]
-			},
-			'jsLibs': [
-				path.join(__dirname, 'vendor', 'lodash.js')
+			include: [
+				{
+					name: 'Lodash',
+					externs: [
+						path.join(__dirname, 'externs', 'lodash.js')
+					],
+					inlineScripts: [
+						path.join(__dirname, 'vendor', 'lodash.js')
+					]
+				}
 			]
 		};
 	}
