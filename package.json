@@ -1,7 +1,7 @@
 {
   "name": "zombiebox-extension-lodash",
   "description": "ZombieBox extension for Lodash",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "license": "MIT",
   "author": "Interfaced (http://interfaced.tv)",
   "contributors": [
@@ -41,22 +41,22 @@
     "lint": "eslint ."
   },
   "dependencies": {
-    "zombiebox": "^2.0.1"
+    "zombiebox": "^2.7.5"
   },
   "peerDependencies": {
-    "zombiebox": "^2.0.1"
+    "zombiebox": "^2.7.5"
   },
   "devDependencies": {
-    "ast-types": "0.13.1",
+    "ast-types": "0.14.2",
     "doctrine": "3.0.0",
-    "escodegen": "1.11.1",
-    "eslint": "^5.16.0",
-    "eslint-config-interfaced": "^1.5.0",
-    "eslint-plugin-goog": "^1.0.0",
-    "eslint-plugin-interfaced": "^1.6.1",
-    "eslint-plugin-node": "^9.1.0",
+    "escodegen": "2.0.0",
+    "eslint": "^7.14.0",
+    "eslint-config-interfaced": "^2.1.1",
+    "eslint-plugin-interfaced": "^2.0.0",
+    "eslint-plugin-jsdoc": "^30.7.8",
+    "eslint-plugin-node": "^11.1.0",
     "esprima": "4.0.1",
-    "lodash": "4.17.11",
+    "lodash": "4.17.20",
     "lodash-cli": "4.17.5"
   }
 }
